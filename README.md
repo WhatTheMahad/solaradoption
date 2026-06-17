@@ -4,8 +4,6 @@
 rooftop solar / net-metering boom by DISCO, framed around the February 2026 shift from
 net metering to net billing.
 
-Mirrors the format of [aiadoption](https://aiadoption-gray.vercel.app/) — same single-file
-dot-grid shape, different data: Pakistani rooftop solar instead of global AI.
 
 ## What is this?
 
@@ -98,15 +96,6 @@ Static — drop on Vercel (or any static host). Add an `og.png` (a screenshot of
 grid) at the site root for the Twitter/LinkedIn share preview; the meta tags already
 reference `/og.png`.
 
-## TODO before launch
-
-Per the build brief's "definition of shipped":
-
-- [ ] Replace modeled per-DISCO numbers with exact NEPRA SIR line items
-- [ ] Add `og.png` share image
-- [ ] Point the GitHub footer link at the real repo
-- [ ] Coordinate with mfrashad before launch
-- [ ] Have one energy analyst (Renewables First / PIDE) cross-check the numbers
 
 ## License
 
