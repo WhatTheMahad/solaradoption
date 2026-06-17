@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solar Adoption in Pakistan — 2026</title>
+<meta name="description" content="Tracking Pakistan's rooftop solar net-metering boom by DISCO — and the Feb 2026 shift from net metering to net billing. Built on NEPRA data.">
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Solar Adoption in Pakistan — 2026">
+<meta property="og:description" content="Pakistan's rooftop solar net-metering boom by DISCO, and what the Feb 2026 net-billing shift means for prosumers.">
+<meta property="og:image" content="/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Solar Adoption in Pakistan — 2026">
+<meta name="twitter:description" content="Pakistan's rooftop solar net-metering boom by DISCO, and what the Feb 2026 net-billing shift means for prosumers.">
+<meta name="twitter:image" content="/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e4de;font-family:'DM Sans','Inter',-apple-system,sans-serif;min-height:100vh;overflow-x:hidden}
+#root{max-width:760px;margin:0 auto;padding:24px 16px 60px}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;background:#2a2a2a;border-radius:2px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#f5a524;cursor:pointer;border:none}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#f5a524;cursor:pointer;border:none}
+a{color:#f5a524;text-decoration:none}
+a:hover{text-decoration:underline}
+::selection{background:#f5a524;color:#0d0d0d}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState, useMemo, useEffect, useRef, useCallback} = React;
+
+const FM = "'JetBrains Mono','SF Mono','Fira Code',monospace";
+const FS = "'DM Sans','Inter',sans-serif";
+const GRID = 400;
+const COLS = 20;
+const ACCENT = "#f5a524";     // sun-yellow
+const ACCENT_HI = "#ffbe4d";
+
+// Each dot = 0.25% of households (in the selected view), colored by how they get power.
+const CATS = [
+  {id:"nm",      label:"Net-metered solar",      color:"#bd831e", active:"#f5a524"},
+  {id:"offgrid", label:"Off-grid solar",         color:"#3f8050", active:"#5aaa6e"},
+  {id:"grid",    label:"Grid-only (no solar)",   color:"#34322d", active:"#4d4a43"},
+  {id:"unelec",  label:"Unelectrified",          color:"#1a1815", active:"#3a352c"},
+];
+
+// DISCO net-metering data.
+//  consumers       = total electricity consumers (millions)
+//  connections     = active net-metering connections (count) — modeled estimate, see FAQ
+//  capacityMW      = sanctioned net-metering capacity (MW)
+//  sharePct        = % of national net-metering capacity
+//  nm/offgrid/unelec = share of households (%); grid-only = remainder
+// Capacity shares & national totals: NEPRA / Renewables First (mid-2025).
+// Connection counts & household mix are modeled estimates — flagged in the FAQ.
+const NATIONAL = {
+  id:"pk", name:"Pakistan", fullName:"National rollup (all DISCOs)", icon:"🇵🇰",
+  region:"All Pakistan", consumers:36.4, connections:283000, capacityMW:6100, sharePct:100,
+  yoyPct:108, nm:0.8, offgrid:5.0, unelec:5.0,
+  highlight:"~283,000 net-metering connections and ~6.1 GW installed — yet still under 3% of grid supply",
+  detail:"Net-metered capacity grew from ~1.3 GW (Jun 2023) to ~4.9 GW (end 2024) to ~6.1 GW (Jun 2025)"
+};
+
+const DISCOS = [
+  {
+    id:"lesco", name:"LESCO", fullName:"Lahore Electric Supply Company", icon:"🌇",
+    region:"Punjab — Lahore region", consumers:6.5, connections:91500, capacityMW:1300, sharePct:21,
+    yoyPct:108, nm:1.4, offgrid:1.5, unelec:1.0,
+    highlight:"Largest net-metering footprint in Pakistan — ~1.3 GW, 21% of the national total",
+    detail:"Lahore's high tariffs and dense industrial demand drove the fastest prosumer growth in the country"
+  },
+  {
+    id:"iesco", name:"IESCO", fullName:"Islamabad Electric Supply Company", icon:"🏛️",
+    region:"Islamabad / Rawalpindi", consumers:4.2, connections:36500, capacityMW:915, sharePct:15,
+    yoyPct:100, nm:0.9, offgrid:1.0, unelec:1.0,
+    highlight:"Twin-cities boom — among the highest net-metering penetration nationally",
+    detail:"An affluent, high-consumption urban base makes rooftop payback especially attractive here"
+  },
+  {
+    id:"ke", name:"K-Electric", fullName:"K-Electric Limited (Karachi)", icon:"🌊",
+    region:"Karachi (private utility)", consumers:3.4, connections:36500, capacityMW:915, sharePct:15,
+    yoyPct:95, nm:1.3, offgrid:0.5, unelec:1.0,
+    highlight:"Pakistan's only private utility — runs a separate net-metering pipeline from the DISCOs",
+    detail:"Karachi's commercial rooftops dominate its solar additions; it sits outside the WAPDA/DISCO umbrella"
+  },
+  {
+    id:"mepco", name:"MEPCO", fullName:"Multan Electric Power Company", icon:"🌾",
+    region:"South Punjab — Multan", consumers:5.8, connections:31500, capacityMW:790, sharePct:13,
+    yoyPct:110, nm:0.6, offgrid:4.0, unelec:3.0,
+    highlight:"South Punjab's agricultural belt is going solar — the largest DISCO by territory",
+    detail:"Tube-well loads and a vast rural footprint mean strong capacity but lower household penetration"
+  },
+  {
+    id:"fesco", name:"FESCO", fullName:"Faisalabad Electric Supply Company", icon:"🧵",
+    region:"Punjab — Faisalabad", consumers:4.8, connections:26500, capacityMW:670, sharePct:11,
+    yoyPct:105, nm:0.9, offgrid:2.0, unelec:1.0,
+    highlight:"Faisalabad's textile hub is electrifying its rooftops",
+    detail:"Industrial power costs push manufacturers toward self-generation across the division"
+  },
+  {
+    id:"gepco", name:"GEPCO", fullName:"Gujranwala Electric Power Company", icon:"🏭",
+    region:"Punjab — Gujranwala", consumers:4.4, connections:24000, capacityMW:610, sharePct:10,
+    yoyPct:104, nm:0.9, offgrid:1.5, unelec:1.0,
+    highlight:"Industrial Gujranwala drives steady net-metering uptake",
+    detail:"A strong SME manufacturing base sustains consistent commercial rooftop installs"
+  },
+  {
+    id:"pesco", name:"PESCO", fullName:"Peshawar Electric Supply Company", icon:"⛰️",
+    region:"Khyber Pakhtunkhwa", consumers:4.0, connections:12000, capacityMW:305, sharePct:5,
+    yoyPct:90, nm:0.4, offgrid:5.0, unelec:8.0,
+    highlight:"KP lags on net metering but leans hard on off-grid solar",
+    detail:"Patchier grid reliability pushes many rural households toward standalone solar systems"
+  },
+  {
+    id:"hesco", name:"HESCO", fullName:"Hyderabad Electric Supply Company", icon:"🏜️",
+    region:"Sindh — Hyderabad", consumers:1.3, connections:9700, capacityMW:245, sharePct:4,
+    yoyPct:92, nm:0.8, offgrid:5.0, unelec:6.0,
+    highlight:"Sindh's Hyderabad belt mixes grid net-metering with rural off-grid solar",
+    detail:"Strong irradiation, but lower incomes slow grid-connected adoption outside the cities"
+  },
+  {
+    id:"qesco", name:"QESCO", fullName:"Quetta Electric Supply Company", icon:"🏔️",
+    region:"Balochistan", consumers:0.7, connections:7300, capacityMW:183, sharePct:3,
+    yoyPct:96, nm:0.9, offgrid:7.0, unelec:15.0,
+    highlight:"Balochistan: the lowest electrification and the highest off-grid reliance",
+    detail:"Vast distances make grid extension costly; solar tube-wells and home systems fill the gap"
+  },
+  {
+    id:"sepco", name:"SEPCO", fullName:"Sukkur Electric Power Company", icon:"🌅",
+    region:"Sindh — Sukkur", consumers:0.9, connections:4900, capacityMW:122, sharePct:2,
+    yoyPct:88, nm:0.6, offgrid:6.0, unelec:10.0,
+    highlight:"Upper Sindh sees rooftop solar arrive against a low electrification base",
+    detail:"High sunshine and grid gaps make off-grid and net-metered solar complementary here"
+  },
+  {
+    id:"tesco", name:"TESCO", fullName:"Tribal Electric Supply Company", icon:"🪨",
+    region:"Ex-FATA tribal districts", consumers:0.4, connections:2400, capacityMW:61, sharePct:1,
+    yoyPct:85, nm:0.3, offgrid:8.0, unelec:30.0,
+    highlight:"Tribal districts where the grid barely reaches — solar fills most of the gap",
+    detail:"The lowest grid penetration in the country; standalone solar is often the only option"
+  },
+];
+
+const ALL = [NATIONAL, ...DISCOS];
+
+const POLICY = {
+  date: "February 2026",
+  rows: [
+    {label:"Mechanism",      before:"Net metering", after:"Net billing"},
+    {label:"Export buyback",  before:"Rs 22–27 / kWh", after:"~Rs 11 / kWh"},
+    {label:"Billing basis",   before:"Unit-for-unit offset", after:"Import & export priced separately"},
+    {label:"Contract length", before:"7 years", after:"5 years"},
+    {label:"Typical payback", before:"3–4 years", after:"6–8 years"},
+  ]
+};
+
+const TICKER = [
+  "Pakistan added more net-metering capacity in 9 months of FY24 than in the previous 8 years combined.",
+  "As of mid-2025, ~283,000 households and businesses had active net-metering connections — up 108% YoY.",
+  "Pakistan imported 17 GW of solar panels in 2024 — twice the 2023 volume and more than the country's largest hydropower dam.",
+  "LESCO alone hosts roughly 1.3 GW of rooftop solar — about 21% of national net-metering capacity.",
+  "Solar is now a fast-rising share of Pakistan's electricity generation, up from under 5% in 2020.",
+  "Net-metered units still make up less than 3% of the national grid mix despite the rooftop boom.",
+  "Approval times for net-metering applications have fallen sharply under digital reforms.",
+  "The Feb 2026 Prosumer Regulations replaced net metering with net billing — cutting export buyback rates by more than half.",
+  "New solar prosumer payback periods roughly doubled overnight — from 3–4 years to 6–8 years.",
+  "An estimated 2.6 million rural Pakistani households use off-grid solar — invisible to official net-metering statistics.",
+];
+
+const FAQS = [
+  {
+    q: "Where does this data come from?",
+    a: "The backbone is NEPRA's State of the Industry Report (the annual, FY-based regulatory record) and NEPRA's net-metering statistics. National capacity totals and growth are cross-checked against Renewables First's PECI solar tracker and Pakistan Electricity Review 2025, pv-magazine's reporting (Aug & Dec 2025), and Ember.\n\n• Cumulative net-metered capacity (~6.1 GW by June 2025, up from ~4.9 GW at end-2024) and ~283,000 active connections: Renewables First / pv-magazine.\n• Solar panel imports (~17 GW in 2024): Pakistan Bureau of Statistics customs data, widely reported.\n• Per-DISCO capacity shares (LESCO ~21%, IESCO/K-Electric ~15% each, MEPCO ~13%, FESCO ~11%, GEPCO ~10%): NEPRA, via Renewables First.\n\nWe cite NEPRA as the authority and PECI as quality-assurance — not the other way around."
+  },
+  {
+    q: "How accurate are the per-DISCO numbers on this page?",
+    a: "Two tiers of confidence:\n\n• Well-sourced: national totals (capacity, connections, growth) and the capacity SHARE of the largest DISCOs come from NEPRA and Renewables First.\n\n• Modeled estimates: the exact net-metering connection COUNT per DISCO, and the household-level breakdown (net-metered vs off-grid vs grid-only vs unelectrified) are not published as a single clean table. We derived per-DISCO connection counts from each DISCO's NEPRA capacity share scaled to the ~283,000 national total, anchored on LESCO's ~91,500 figure. Household-mix shares are regional estimates informed by electrification and off-grid-solar patterns.\n\nThese modeled figures are clearly directional, not exact. Replacing them with the line-item DISCO table from the latest NEPRA State of the Industry Report is the top priority for the next data refresh."
+  },
+  {
+    q: "What changed in February 2026?",
+    a: "NEPRA's Prosumer Regulations 2026 replaced net metering with net billing for new rooftop-solar consumers.\n\n• Under net metering, the units you exported to the grid were netted against the units you imported, effectively valued at your full retail tariff (~Rs 22–27/kWh).\n\n• Under net billing, imports and exports are priced separately: you still pay retail for what you draw, but exported solar is bought back at a much lower rate (~Rs 11/kWh).\n\nContracts also shortened from 7 to 5 years, and typical payback periods roughly doubled — from 3–4 years to 6–8 years. Existing net-metering consumers are generally honored for the remainder of their contracts; the new terms apply to new applicants. (NEPRA Prosumer Regulations 2026; pv-magazine, Dec 2025.)"
+  },
+  {
+    q: "Net metering vs net billing — what's the difference, plainly?",
+    a: "Net metering is a unit-for-unit swap. If your panels send 1 kWh to the grid during the day and you pull 1 kWh back at night, they cancel out — you're billed only on the net. Excess export is credited at close to the retail rate.\n\nNet billing splits the two flows. The electricity you import is charged at the full retail tariff, while the solar you export is purchased at a separate, lower buyback rate set by the regulator. Because you no longer get retail value for your exports, the economics favor sizing your system to your own daytime consumption rather than exporting heavily."
+  },
+  {
+    q: "What's NOT captured here?",
+    a: "Quite a lot of real solar:\n\n• Off-grid solar: an estimated ~2.6 million rural households use standalone solar that never touches a DISCO meter and so never appears in net-metering statistics. We show it as a separate category in the grid, but its size is a survey-based estimate, not a registry count.\n\n• Informal / unregistered rooftop systems and 'solar-only' homes that simply disconnected from the grid.\n\n• Captive industrial generation — large factories self-generating behind the fence.\n\nThis page tracks grid-connected net-metering (the part NEPRA registers) plus a best-estimate off-grid layer for context."
+  },
+  {
+    q: "Why is K-Electric tracked separately from the DISCOs?",
+    a: "K-Electric is Pakistan's only vertically-integrated private utility, serving Karachi. The ten 'DISCOs' (LESCO, IESCO, MEPCO, GEPCO, FESCO, PESCO, HESCO, SEPCO, QESCO, TESCO) are former WAPDA distribution companies under the Power Division. K-Electric sits outside that group and administers its own net-metering pipeline, so we list it on its own rather than folding it into the DISCO totals."
+  },
+  {
+    q: "Why is solar adoption so uneven across DISCOs?",
+    a: "Several forces pull in different directions:\n\n• Tariffs: high-tariff urban zones (Lahore, Islamabad, Karachi) reach payback fastest, so net-metering clusters there.\n• Income & financing: rooftop solar needs upfront capital or credit, which favors wealthier, urban consumers.\n• Grid reliability: where the grid is weak or absent (KP, Balochistan, tribal districts) households skip net metering and go off-grid or stay unelectrified.\n• Sector mix: industrial divisions (Faisalabad, Gujranwala) add large commercial systems; agricultural ones (South Punjab, Sindh) lean toward solar tube-wells."
+  },
+  {
+    q: "How often does this update?",
+    a: "Roughly annually, tracking NEPRA's State of the Industry Report release each fiscal year, with ad-hoc refreshes when major figures (national capacity, the policy regime) change. Solar in Pakistan is moving fast and the policy story is still unsettled, so treat every number as a snapshot — the page is date-stamped in the footer for exactly that reason."
+  },
+];
+
+const SOURCES = [
+  {n:"NEPRA — State of the Industry Report (annual)", u:"https://www.nepra.org.pk/publications/State%20of%20Industry%20Reports/State%20of%20Industry%20Report%202024.pdf"},
+  {n:"NEPRA — Prosumer Regulations 2026 / net-metering rules", u:"https://www.nepra.org.pk/"},
+  {n:"Renewables First — Pakistan Electricity Review 2025", u:"https://uploads.renewablesfirst.org/Pakistan_Electricity_Review_2025_89f0b613d6.pdf"},
+  {n:"Renewables First — PECI Solar Tracker", u:"https://peci.renewablesfirst.org/solar-tracker"},
+  {n:"pv-magazine — Pakistan adds 1.2 GW net-metering in H1 2025", u:"https://www.pv-magazine.com/2025/08/06/pakistan-adds-1-2-gw-of-net-metering-capacity-in-h1/"},
+  {n:"pv-magazine — Pakistan unveils new net-metering rules (Dec 2025)", u:"https://www.pv-magazine.com/2025/12/18/pakistan-unveils-new-net-metering-rules-for-rooftop-pv/"},
+  {n:"Ember — Pakistan electricity profile", u:"https://ember-energy.org/data/"},
+  {n:"IEEFA — Pakistan solar analysis", u:"https://ieefa.org/"},
+  {n:"Pakistan Bureau of Statistics — trade / PV imports", u:"https://www.pbs.gov.pk/"},
+];
+
+// --- Utilities ---
+function fmtCount(n) {
+  if (n >= 1000) return Math.round(n).toLocaleString();
+  return String(Math.round(n));
+}
+function fmtPower(mw) {
+  if (mw >= 1000) return (mw/1000).toFixed(mw>=10000?0:1) + " GW";
+  return Math.round(mw).toLocaleString() + " MW";
+}
+function fmtPct(p) { return p < 0.1 ? "<0.1%" : p.toFixed(1) + "%"; }
+
+function computeDots(d) {
+  const nmPct = d.nm;
+  const offPct = d.offgrid;
+  const unPct = d.unelec;
+  const gridPct = Math.max(0, 100 - nmPct - offPct - unPct);
+
+  let nmDots = Math.max(d.nm > 0 ? 1 : 0, Math.round((nmPct / 100) * GRID));
+  let offDots = Math.max(d.offgrid > 0 ? 1 : 0, Math.round((offPct / 100) * GRID));
+  let unDots = Math.max(0, Math.round((unPct / 100) * GRID));
+  let gridDots = GRID - nmDots - offDots - unDots;
+
+  if (gridDots < 0) { unDots += gridDots; gridDots = 0; }
+
+  const arr = [];
+  for (let i = 0; i < nmDots; i++) arr.push("nm");
+  for (let i = 0; i < offDots; i++) arr.push("offgrid");
+  for (let i = 0; i < gridDots; i++) arr.push("grid");
+  for (let i = 0; i < unDots; i++) arr.push("unelec");
+  return { arr, nmPct, offPct, gridPct, unPct };
+}
+
+// --- Main Component ---
+function App() {
+  const [selId, setSelId] = useState("pk");
+  const [hovCat, setHovCat] = useState(null);
+  const [showSrc, setShowSrc] = useState(false);
+  const [faqOpen, setFaqOpen] = useState(null);
+  const [fi, setFi] = useState(0);
+  const [fv, setFv] = useState(true);
+  const [playing, setPlaying] = useState(false);
+  const playRef = useRef(null);
+  const tickerRef = useRef(null);
+
+  const disco = ALL.find(c => c.id === selId);
+  const dots = useMemo(() => computeDots(disco), [selId]);
+
+  // selector order: National first, then DISCOs by capacity share
+  const ordered = useMemo(() => [NATIONAL, ...[...DISCOS].sort((a,b) => b.capacityMW - a.capacityMW)], []);
+
+  // Ticker rotation
+  useEffect(() => {
+    tickerRef.current = setInterval(() => {
+      setFv(false);
+      setTimeout(() => {
+        setFi(i => (i + 1) % TICKER.length);
+        setFv(true);
+      }, 400);
+    }, 6000);
+    return () => clearInterval(tickerRef.current);
+  }, []);
+
+  // Play through DISCOs (smallest capacity → largest)
+  const play = useCallback(() => {
+    if (playing) { setPlaying(false); return; }
+    setPlaying(true);
+    const order = [...DISCOS].sort((a,b) => a.capacityMW - b.capacityMW);
+    let idx = 0;
+    setSelId(order[0].id);
+    const step = () => {
+      idx++;
+      if (idx >= order.length) { setPlaying(false); return; }
+      setSelId(order[idx].id);
+      playRef.current = setTimeout(step, idx < order.length - 2 ? 1200 : 1900);
+    };
+    playRef.current = setTimeout(step, 1500);
+  }, [playing]);
+
+  useEffect(() => () => { if (playRef.current) clearTimeout(playRef.current); }, []);
+
+  const stopPlay = () => { setPlaying(false); if (playRef.current) clearTimeout(playRef.current); };
+  const select = (id) => { stopPlay(); setSelId(id); };
+
+  const penetration = disco.consumers > 0 ? (disco.connections / (disco.consumers * 1e6)) * 100 : 0;
+
+  // legend stats (households are abstract — show shares only)
+  const catStats = {
+    nm:      dots.nmPct,
+    offgrid: dots.offPct,
+    grid:    dots.gridPct,
+    unelec:  dots.unPct,
+  };
+
+  return (
+    <div>
+      {/* Title */}
+      <h1 style={{fontFamily:FS, fontWeight:700, fontSize:"clamp(22px, 5vw, 38px)", textAlign:"center", marginBottom:4, lineHeight:1.2, animation:"fadeIn 0.6s ease"}}>
+        Solar Adoption in Pakistan
+      </h1>
+      <p style={{fontFamily:FS, fontSize:13, textAlign:"center", color:"#b0a998", marginBottom:6}}>
+        Tracking the rooftop solar boom and the Feb 2026 policy shift.
+      </p>
+      <p style={{fontFamily:FM, fontSize:11, textAlign:"center", color:"#8a857a", marginBottom:18}}>
+        Each dot = 0.25% of households
+      </p>
+
+      {/* Ticker */}
+      <div style={{
+        borderTop:"1px solid #1a1a1a", borderBottom:"1px solid #1a1a1a",
+        padding:"10px 16px", marginBottom:22, textAlign:"center", minHeight:40,
+      }}>
+        <p style={{fontFamily:FM, fontSize:10, color:"#8a857a", lineHeight:1.5, opacity: fv ? 1 : 0, transition:"opacity 0.4s ease"}}>
+          {TICKER[fi]}
+        </p>
+      </div>
+
+      {/* Current selection summary */}
+      <p style={{fontFamily:FM, fontSize:12, textAlign:"center", color:"#b0a998", marginBottom:6}}>
+        {disco.icon} {disco.fullName}
+      </p>
+      <p style={{fontFamily:FM, fontSize:12, textAlign:"center", color:"#b0a998", marginBottom:16}}>
+        <span style={{color:ACCENT_HI}}>{fmtCount(disco.connections)}</span> net-metering connections
+        {" • "}
+        <span style={{color:"#e8e4de", fontWeight:500}}>{fmtPower(disco.capacityMW)}</span> installed
+        {" "}
+        <span style={{color:"#8a857a"}}>({disco.sharePct}% of national)</span>
+      </p>
+
+      {/* Play + slider through DISCOs */}
+      <div style={{display:"flex", alignItems:"center", gap:12, marginBottom:14}}>
+        <button onClick={play} title="Play through DISCOs"
+          style={{
+            width:36, height:36, borderRadius:"50%", border:`2px solid ${ACCENT}`,
+            background: playing ? ACCENT : "transparent", cursor:"pointer",
+            display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all 0.2s"
+          }}>
+          {playing
+            ? <span style={{fontFamily:FM, fontSize:12, color:"#0d0d0d", fontWeight:700}}>||</span>
+            : <span style={{display:"inline-block", width:0, height:0, borderTop:"6px solid transparent", borderBottom:"6px solid transparent", borderLeft:`10px solid ${ACCENT}`, marginLeft:2}} />}
+        </button>
+        <input type="range" min={0} max={ordered.length - 1}
+          value={ordered.findIndex(c => c.id === selId)}
+          onChange={e => { stopPlay(); setSelId(ordered[parseInt(e.target.value)].id); }}
+          style={{flex:1}} />
+      </div>
+
+      {/* DISCO selector pills */}
+      <div style={{display:"flex", flexWrap:"wrap", gap:6, justifyContent:"center", marginBottom:18}}>
+        {ordered.map(c => {
+          const isSel = c.id === selId;
+          const isNat = c.id === "pk";
+          return (
+            <button key={c.id} onClick={() => select(c.id)}
+              style={{
+                fontFamily:FM, fontSize:11, padding:"4px 10px", borderRadius:20,
+                border: isSel ? `1.5px solid ${ACCENT}` : isNat ? "1.5px solid #555" : "1.5px solid #333",
+                background: isSel ? "rgba(245,165,36,0.15)" : "transparent",
+                color: isSel ? ACCENT_HI : isNat ? "#b0a998" : "#8a857a",
+                cursor:"pointer", transition:"all 0.2s", whiteSpace:"nowrap",
+              }}
+              onMouseEnter={e => { if (!isSel) { e.target.style.borderColor="#777"; e.target.style.color="#cfc8ba"; }}}
+              onMouseLeave={e => { if (!isSel) { e.target.style.borderColor=isNat?"#555":"#333"; e.target.style.color=isNat?"#b0a998":"#8a857a"; }}}
+            >
+              {c.icon} {c.name}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Highlight */}
+      <p style={{fontFamily:FM, fontSize:11, textAlign:"center", color:ACCENT, marginBottom:16, minHeight:32, lineHeight:1.4, padding:"0 12px"}}>
+        {disco.highlight}
+      </p>
+
+      {/* Dot Grid */}
+      <div style={{display:"grid", gridTemplateColumns:`repeat(${COLS}, 1fr)`, gap:2, maxWidth:340, margin:"0 auto 20px", padding:4}}>
+        {dots.arr.map((cat, i) => {
+          const isHov = hovCat === null || hovCat === cat;
+          const c = CATS.find(x=>x.id===cat);
+          return (
+            <div key={i} style={{
+              aspectRatio:"1/1", borderRadius:2,
+              backgroundColor: isHov ? c.active : c.color,
+              outline: cat==="unelec" ? "1px solid rgba(255,255,255,0.04)" : "none",
+              opacity: isHov ? (hovCat===cat ? 1 : 0.8) : 0.07,
+              transition:`background-color 0.35s ease ${i*1.5}ms, opacity 0.3s ease`,
+            }} />
+          );
+        })}
+      </div>
+
+      {/* Legend */}
+      <div style={{display:"flex", flexWrap:"wrap", justifyContent:"center", gap:"8px 20px", maxWidth:540, margin:"0 auto 20px"}}>
+        {CATS.map(cat => (
+          <div key={cat.id}
+            style={{display:"flex", alignItems:"center", gap:6, cursor:"pointer", opacity: hovCat === null || hovCat === cat.id ? 1 : 0.3, transition:"opacity 0.2s"}}
+            onMouseEnter={() => setHovCat(cat.id)} onMouseLeave={() => setHovCat(null)}>
+            <div style={{width:10, height:10, borderRadius:1.5, backgroundColor:cat.active, outline: cat.id==="unelec"?"1px solid rgba(255,255,255,0.1)":"none", flexShrink:0}} />
+            <div>
+              <span style={{fontFamily:FS, fontSize:11, color:"#b0a998"}}>{cat.label}</span>
+              <span style={{fontFamily:FM, fontSize:11, color:"#e8e4de", marginLeft:6}}>{fmtPct(catStats[cat.id])}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Detail */}
+      <p style={{fontFamily:FS, fontSize:11, textAlign:"center", color:"#666", marginBottom:20, lineHeight:1.4, padding:"0 20px"}}>
+        {disco.detail}
+      </p>
+
+      {/* Key stats */}
+      <div style={{display:"flex", justifyContent:"center", gap:24, flexWrap:"wrap", marginBottom:28}}>
+        {[
+          {label:"Consumers", value:disco.consumers >= 1 ? disco.consumers.toFixed(1)+"M" : Math.round(disco.consumers*1000)+"K"},
+          {label:"NM Connections", value:fmtCount(disco.connections)},
+          {label:"NM Capacity", value:fmtPower(disco.capacityMW)},
+          {label:"Penetration", value:fmtPct(penetration)},
+        ].map(({label,value}) => (
+          <div key={label} style={{textAlign:"center"}}>
+            <div style={{fontFamily:FM, fontSize:18, fontWeight:700, color:"#e8e4de"}}>{value}</div>
+            <div style={{fontFamily:FM, fontSize:9, color:"#666", textTransform:"uppercase", letterSpacing:1}}>{label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Comparison: capacity by DISCO */}
+      <h2 style={{fontFamily:FS, fontSize:16, fontWeight:700, marginBottom:4, textAlign:"center"}}>
+        Net-metering capacity by DISCO
+      </h2>
+      <p style={{fontFamily:FM, fontSize:10, color:"#666", textAlign:"center", marginBottom:16}}>
+        sanctioned rooftop capacity, MW
+      </p>
+      <div style={{maxWidth:600, margin:"0 auto 28px"}}>
+        {[...DISCOS].sort((a,b) => b.capacityMW - a.capacityMW).map(c => {
+          const isSel = c.id === selId;
+          const w = (c.capacityMW / DISCOS[0].capacityMW) * 100;
+          const maxMW = Math.max(...DISCOS.map(d => d.capacityMW));
+          return (
+            <div key={c.id} onClick={() => select(c.id)}
+              style={{display:"flex", alignItems:"center", gap:8, marginBottom:4, cursor:"pointer", padding:"3px 0", opacity: isSel ? 1 : 0.6, transition:"opacity 0.2s"}}
+              onMouseEnter={e => e.currentTarget.style.opacity = "1"}
+              onMouseLeave={e => { if (!isSel) e.currentTarget.style.opacity = "0.6"; }}>
+              <div style={{width:82, fontFamily:FM, fontSize:10, color: isSel ? ACCENT_HI : "#8a857a", textAlign:"right", flexShrink:0}}>
+                {c.icon} {c.name}
+              </div>
+              <div style={{flex:1, height:14, background:"#1a1a1a", borderRadius:2, overflow:"hidden"}}>
+                <div style={{height:"100%", width: (c.capacityMW/maxMW*100)+"%", backgroundColor: isSel ? ACCENT_HI : ACCENT, borderRadius:2, transition:"width 0.4s ease, background-color 0.3s"}} />
+              </div>
+              <div style={{width:56, fontFamily:FM, fontSize:10, color: isSel ? "#e8e4de" : "#666", flexShrink:0, textAlign:"right"}}>
+                {fmtPower(c.capacityMW)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Comparison: penetration */}
+      <h2 style={{fontFamily:FS, fontSize:16, fontWeight:700, marginBottom:4, textAlign:"center"}}>
+        Net-metering penetration by DISCO
+      </h2>
+      <p style={{fontFamily:FM, fontSize:10, color:"#666", textAlign:"center", marginBottom:16}}>
+        connections as % of the DISCO's consumers
+      </p>
+      <div style={{maxWidth:600, margin:"0 auto 28px"}}>
+        {[...DISCOS].map(c => ({...c, pen:(c.connections/(c.consumers*1e6))*100}))
+          .sort((a,b) => b.pen - a.pen).map(c => {
+          const isSel = c.id === selId;
+          const maxPen = 1.6;
+          return (
+            <div key={c.id} onClick={() => select(c.id)}
+              style={{display:"flex", alignItems:"center", gap:8, marginBottom:4, cursor:"pointer", padding:"3px 0", opacity: isSel ? 1 : 0.6, transition:"opacity 0.2s"}}
+              onMouseEnter={e => e.currentTarget.style.opacity = "1"}
+              onMouseLeave={e => { if (!isSel) e.currentTarget.style.opacity = "0.6"; }}>
+              <div style={{width:82, fontFamily:FM, fontSize:10, color: isSel ? ACCENT_HI : "#8a857a", textAlign:"right", flexShrink:0}}>
+                {c.icon} {c.name}
+              </div>
+              <div style={{flex:1, height:14, background:"#1a1a1a", borderRadius:2, overflow:"hidden"}}>
+                <div style={{height:"100%", width: Math.min(100, c.pen/maxPen*100)+"%", backgroundColor: isSel ? ACCENT_HI : ACCENT, borderRadius:2, transition:"width 0.4s ease"}} />
+              </div>
+              <div style={{width:56, fontFamily:FM, fontSize:10, color: isSel ? "#e8e4de" : "#666", flexShrink:0, textAlign:"right"}}>
+                {c.pen.toFixed(2)}%
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* THE POLICY SHIFT */}
+      <div style={{borderTop:`1px solid ${ACCENT}`, borderBottom:"1px solid #1a1a1a", paddingTop:22, paddingBottom:22, marginBottom:28}}>
+        <h2 style={{fontFamily:FS, fontSize:18, fontWeight:700, marginBottom:4, textAlign:"center", color:ACCENT_HI}}>
+          The Policy Shift — {POLICY.date}
+        </h2>
+        <p style={{fontFamily:FS, fontSize:12, color:"#8a857a", textAlign:"center", lineHeight:1.5, marginBottom:18, maxWidth:520, marginLeft:"auto", marginRight:"auto"}}>
+          NEPRA's Prosumer Regulations 2026 replaced <strong style={{color:"#b0a998"}}>net metering</strong> with <strong style={{color:"#b0a998"}}>net billing</strong>, sharply changing rooftop-solar economics for new prosumers.
+        </p>
+
+        <div style={{maxWidth:560, margin:"0 auto 18px"}}>
+          {/* header */}
+          <div style={{display:"flex", fontFamily:FM, fontSize:10, color:"#666", textTransform:"uppercase", letterSpacing:1, padding:"0 4px 8px", borderBottom:"1px solid #1a1a1a"}}>
+            <div style={{flex:"0 0 36%"}}></div>
+            <div style={{flex:1, textAlign:"center", color:"#8a857a"}}>Before (net metering)</div>
+            <div style={{flex:1, textAlign:"center", color:ACCENT}}>After (net billing)</div>
+          </div>
+          {POLICY.rows.map((r,i) => (
+            <div key={i} style={{display:"flex", alignItems:"center", padding:"10px 4px", borderBottom:"1px solid #141414"}}>
+              <div style={{flex:"0 0 36%", fontFamily:FS, fontSize:12, color:"#b0a998"}}>{r.label}</div>
+              <div style={{flex:1, textAlign:"center", fontFamily:FM, fontSize:12, color:"#8a857a"}}>{r.before}</div>
+              <div style={{flex:1, textAlign:"center", fontFamily:FM, fontSize:12, color:"#e8e4de", fontWeight:500}}>{r.after}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{maxWidth:560, margin:"0 auto", background:"#141414", border:"1px solid #222", borderRadius:6, padding:"14px 16px"}}>
+          <p style={{fontFamily:FS, fontSize:12, color:"#b0a998", lineHeight:1.65}}>
+            <strong style={{color:ACCENT_HI}}>What this means for new prosumers:</strong> the value of exporting surplus solar to the grid falls by more than half, so payback periods roughly double — from about 3–4 years to 6–8. The economics now favor sizing a system to your own daytime use (and adding batteries) rather than exporting heavily. Consumers who registered under net metering before the cutover are generally honored for the rest of their existing contracts.
+          </p>
+        </div>
+      </div>
+
+      {/* FAQ */}
+      <div style={{borderTop:"1px solid #1a1a1a", paddingTop:20, marginBottom:20}}>
+        <h2 style={{fontFamily:FS, fontSize:16, fontWeight:700, marginBottom:12, textAlign:"center"}}>FAQ</h2>
+        {FAQS.map((f,i) => (
+          <div key={i} style={{borderBottom:"1px solid #1a1a1a", padding:"10px 0"}}>
+            <button onClick={() => setFaqOpen(faqOpen === i ? null : i)}
+              style={{background:"none", border:"none", color:"#b0a998", cursor:"pointer", fontFamily:FS, fontSize:13, textAlign:"left", width:"100%", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+              {f.q}
+              <span style={{fontFamily:FM, fontSize:14, color:"#666", marginLeft:8, flexShrink:0, transition:"transform 0.2s", transform: faqOpen===i?"rotate(45deg)":"rotate(0)"}}>+</span>
+            </button>
+            {faqOpen === i && (
+              <div style={{fontFamily:FS, fontSize:12, color:"#666", lineHeight:1.6, marginTop:8, padding:"0 4px", whiteSpace:"pre-line"}}>
+                {f.a}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Sources */}
+      <div style={{marginBottom:24}}>
+        <button onClick={() => setShowSrc(!showSrc)}
+          style={{fontFamily:FM, fontSize:11, color:"#666", background:"none", border:"1px solid #333", borderRadius:4, padding:"6px 14px", cursor:"pointer", display:"block", margin:"0 auto", transition:"all 0.2s"}}
+          onMouseEnter={e => { e.target.style.borderColor="#555"; e.target.style.color="#8a857a"; }}
+          onMouseLeave={e => { e.target.style.borderColor="#333"; e.target.style.color="#666"; }}>
+          {showSrc ? "Hide" : "Show"} Sources ({SOURCES.length})
+        </button>
+        {showSrc && (
+          <ol style={{fontFamily:FM, fontSize:10, color:"#666", lineHeight:1.8, marginTop:12, paddingLeft:20}}>
+            {SOURCES.map((s,i) => <li key={i}><a href={s.u} target="_blank" rel="noopener">{s.n}</a></li>)}
+          </ol>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div style={{borderTop:"1px solid #1a1a1a", paddingTop:16, textAlign:"center"}}>
+        <p style={{fontFamily:FM, fontSize:9, color:"#444", lineHeight:1.6, maxWidth:520, margin:"0 auto"}}>
+          National capacity, connection and growth figures are sourced from NEPRA and Renewables First.
+          Per-DISCO connection counts and the household-level breakdown are modeled estimates derived from
+          NEPRA capacity shares — see the FAQ. All figures are snapshots and the policy regime is still evolving.
+        </p>
+        <p style={{fontFamily:FM, fontSize:10, color:"#8a857a", marginTop:12}}>
+          Built by Mahad · Last updated 16 June 2026 · <a href="https://github.com/mahad/solaradoption" target="_blank" rel="noopener">Source on GitHub</a>
+        </p>
+        <p style={{fontFamily:FM, fontSize:9, color:"#333", marginTop:6}}>
+          Mirrors the format of <a href="https://aiadoption-gray.vercel.app/" target="_blank" rel="noopener">aiadoption</a>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
