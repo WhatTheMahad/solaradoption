@@ -32,15 +32,37 @@
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
 <style>
+:root{
+  --bg:#0d0d0d; --panel:#141414; --rangetrack:#2a2a2a;
+  --border:#1a1a1a; --border2:#222; --border3:#333; --border-hover:#555; --border-hover2:#777;
+  --text:#e8e4de; --text2:#b0a998; --text3:#8a857a; --text4:#666; --text5:#444; --text6:#333; --text-soft:#cfc8ba;
+  --accent:#f5a524; --accent-hi:#ffbe4d;
+  --cat-nm:#bd831e;     --cat-nm-active:#f5a524;
+  --cat-off:#3f8050;    --cat-off-active:#5aaa6e;
+  --cat-grid:#34322d;   --cat-grid-active:#4d4a43;
+  --cat-unelec:#1a1815; --cat-unelec-active:#3a352c;
+  --dot-outline:rgba(255,255,255,0.04); --dot-outline2:rgba(255,255,255,0.1);
+}
+body.theme-light{
+  --bg:#faf8f3; --panel:#f1ece2; --rangetrack:#e0dacd;
+  --border:#e7e2d6; --border2:#ddd6c8; --border3:#d3cbba; --border-hover:#b4ab9a; --border-hover2:#988e7e;
+  --text:#1c1a14; --text2:#46423a; --text3:#6a6456; --text4:#8c8678; --text5:#a6a094; --text6:#b3ad9f; --text-soft:#5a5448;
+  --accent:#e0890c; --accent-hi:#b9740a;
+  --cat-nm:#f0cd86;     --cat-nm-active:#f5a524;
+  --cat-off:#9cc6a8;    --cat-off-active:#4f9a64;
+  --cat-grid:#ded8cc;   --cat-grid-active:#c2baa9;
+  --cat-unelec:#efeae1; --cat-unelec-active:#ddd6c9;
+  --dot-outline:rgba(0,0,0,0.07); --dot-outline2:rgba(0,0,0,0.16);
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:#0d0d0d;color:#e8e4de;font-family:'DM Sans','Inter',-apple-system,sans-serif;min-height:100vh;overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans','Inter',-apple-system,sans-serif;min-height:100vh;overflow-x:hidden;transition:background-color .3s ease,color .3s ease}
 #root{max-width:760px;margin:0 auto;padding:24px 16px 60px}
-input[type=range]{-webkit-appearance:none;width:100%;height:4px;background:#2a2a2a;border-radius:2px;outline:none;cursor:pointer}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#f5a524;cursor:pointer;border:none}
-input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#f5a524;cursor:pointer;border:none}
-a{color:#f5a524;text-decoration:none}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;background:var(--rangetrack);border-radius:2px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
+a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
-::selection{background:#f5a524;color:#0d0d0d}
+::selection{background:var(--accent);color:#fff}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 </style>
 <!-- Structured data: read by search engines and AI crawlers without executing JS -->
@@ -159,15 +181,15 @@ const FM = "'JetBrains Mono','SF Mono','Fira Code',monospace";
 const FS = "'DM Sans','Inter',sans-serif";
 const GRID = 400;
 const COLS = 20;
-const ACCENT = "#f5a524";     // sun-yellow
-const ACCENT_HI = "#ffbe4d";
+const ACCENT = "var(--accent)";     // sun-yellow
+const ACCENT_HI = "var(--accent-hi)";
 
 // Each dot = 0.25% of households (in the selected view), colored by how they get power.
 const CATS = [
-  {id:"nm",      label:"Net-metered solar",      color:"#bd831e", active:"#f5a524"},
-  {id:"offgrid", label:"Off-grid solar",         color:"#3f8050", active:"#5aaa6e"},
-  {id:"grid",    label:"Grid-only (no solar)",   color:"#34322d", active:"#4d4a43"},
-  {id:"unelec",  label:"Unelectrified",          color:"#1a1815", active:"#3a352c"},
+  {id:"nm",      label:"Net-metered solar",      color:"var(--cat-nm)",     active:"var(--cat-nm-active)"},
+  {id:"offgrid", label:"Off-grid solar",         color:"var(--cat-off)",    active:"var(--cat-off-active)"},
+  {id:"grid",    label:"Grid-only (no solar)",   color:"var(--cat-grid)",   active:"var(--cat-grid-active)"},
+  {id:"unelec",  label:"Unelectrified",          color:"var(--cat-unelec)", active:"var(--cat-unelec-active)"},
 ];
 
 // DISCO net-metering data.
@@ -383,6 +405,19 @@ function App() {
   const playRef = useRef(null);
   const tickerRef = useRef(null);
 
+  const [theme, setTheme] = useState(() => {
+    try { const sv = localStorage.getItem("theme"); if (sv === "light" || sv === "dark") return sv; } catch (e) {}
+    try { if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) return "light"; } catch (e) {}
+    return "dark";
+  });
+  useEffect(() => {
+    document.body.classList.toggle("theme-light", theme === "light");
+    const m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute("content", theme === "light" ? "#faf8f3" : "#0d0d0d");
+    try { localStorage.setItem("theme", theme); } catch (e) {}
+  }, [theme]);
+  const toggleTheme = () => setTheme(t => (t === "light" ? "dark" : "light"));
+
   const disco = ALL.find(c => c.id === selId);
   const dots = useMemo(() => computeDots(disco), [selId]);
 
@@ -433,38 +468,49 @@ function App() {
   };
 
   return (
-    <div>
+    <div style={{position:"relative"}}>
+      {/* Day / night theme toggle */}
+      <button onClick={toggleTheme} aria-label="Toggle day or night theme"
+        title={theme === "dark" ? "Switch to day" : "Switch to night"}
+        style={{position:"absolute", top:-4, right:-2, width:34, height:34, borderRadius:"50%",
+          border:"1.5px solid var(--border3)", background:"transparent", cursor:"pointer",
+          display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, lineHeight:1,
+          transition:"all 0.2s", zIndex:5}}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--accent)"; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border3)"; }}>
+        {theme === "dark" ? "☀️" : "🌙"}
+      </button>
       {/* Title */}
       <h1 style={{fontFamily:FS, fontWeight:700, fontSize:"clamp(22px, 5vw, 38px)", textAlign:"center", marginBottom:4, lineHeight:1.2, animation:"fadeIn 0.6s ease"}}>
         Solar Adoption in Pakistan
       </h1>
-      <p style={{fontFamily:FS, fontSize:13, textAlign:"center", color:"#b0a998", marginBottom:6}}>
+      <p style={{fontFamily:FS, fontSize:13, textAlign:"center", color:"var(--text2)", marginBottom:6}}>
         Tracking the rooftop solar boom and the Feb 2026 policy shift.
       </p>
-      <p style={{fontFamily:FM, fontSize:11, textAlign:"center", color:"#8a857a", marginBottom:18}}>
+      <p style={{fontFamily:FM, fontSize:11, textAlign:"center", color:"var(--text3)", marginBottom:18}}>
         Each dot = 0.25% of households
       </p>
 
       {/* Ticker */}
       <div style={{
-        borderTop:"1px solid #1a1a1a", borderBottom:"1px solid #1a1a1a",
+        borderTop:"1px solid var(--border)", borderBottom:"1px solid var(--border)",
         padding:"10px 16px", marginBottom:22, textAlign:"center", minHeight:40,
       }}>
-        <p style={{fontFamily:FM, fontSize:10, color:"#8a857a", lineHeight:1.5, opacity: fv ? 1 : 0, transition:"opacity 0.4s ease"}}>
+        <p style={{fontFamily:FM, fontSize:10, color:"var(--text3)", lineHeight:1.5, opacity: fv ? 1 : 0, transition:"opacity 0.4s ease"}}>
           {TICKER[fi]}
         </p>
       </div>
 
       {/* Current selection summary */}
-      <p style={{fontFamily:FM, fontSize:12, textAlign:"center", color:"#b0a998", marginBottom:6}}>
+      <p style={{fontFamily:FM, fontSize:12, textAlign:"center", color:"var(--text2)", marginBottom:6}}>
         {disco.icon} {disco.fullName}
       </p>
-      <p style={{fontFamily:FM, fontSize:12, textAlign:"center", color:"#b0a998", marginBottom:16}}>
+      <p style={{fontFamily:FM, fontSize:12, textAlign:"center", color:"var(--text2)", marginBottom:16}}>
         <span style={{color:ACCENT_HI}}>{fmtCount(disco.connections)}</span> net-metering connections
         {" • "}
-        <span style={{color:"#e8e4de", fontWeight:500}}>{fmtPower(disco.capacityMW)}</span> installed
+        <span style={{color:"var(--text)", fontWeight:500}}>{fmtPower(disco.capacityMW)}</span> installed
         {" "}
-        <span style={{color:"#8a857a"}}>({disco.sharePct}% of national)</span>
+        <span style={{color:"var(--text3)"}}>({disco.sharePct}% of national)</span>
       </p>
 
       {/* Play + slider through DISCOs */}
@@ -494,13 +540,13 @@ function App() {
             <button key={c.id} onClick={() => select(c.id)}
               style={{
                 fontFamily:FM, fontSize:11, padding:"4px 10px", borderRadius:20,
-                border: isSel ? `1.5px solid ${ACCENT}` : isNat ? "1.5px solid #555" : "1.5px solid #333",
+                border: isSel ? `1.5px solid ${ACCENT}` : isNat ? "1.5px solid var(--border-hover)" : "1.5px solid var(--border3)",
                 background: isSel ? "rgba(245,165,36,0.15)" : "transparent",
-                color: isSel ? ACCENT_HI : isNat ? "#b0a998" : "#8a857a",
+                color: isSel ? ACCENT_HI : isNat ? "var(--text2)" : "var(--text3)",
                 cursor:"pointer", transition:"all 0.2s", whiteSpace:"nowrap",
               }}
-              onMouseEnter={e => { if (!isSel) { e.target.style.borderColor="#777"; e.target.style.color="#cfc8ba"; }}}
-              onMouseLeave={e => { if (!isSel) { e.target.style.borderColor=isNat?"#555":"#333"; e.target.style.color=isNat?"#b0a998":"#8a857a"; }}}
+              onMouseEnter={e => { if (!isSel) { e.target.style.borderColor="var(--border-hover2)"; e.target.style.color="var(--text-soft)"; }}}
+              onMouseLeave={e => { if (!isSel) { e.target.style.borderColor=isNat?"var(--border-hover)":"var(--border3)"; e.target.style.color=isNat?"var(--text2)":"var(--text3)"; }}}
             >
               {c.icon} {c.name}
             </button>
@@ -522,7 +568,7 @@ function App() {
             <div key={i} style={{
               aspectRatio:"1/1", borderRadius:2,
               backgroundColor: isHov ? c.active : c.color,
-              outline: cat==="unelec" ? "1px solid rgba(255,255,255,0.04)" : "none",
+              outline: cat==="unelec" ? "1px solid var(--dot-outline)" : "none",
               opacity: isHov ? (hovCat===cat ? 1 : 0.8) : 0.07,
               transition:`background-color 0.35s ease ${i*1.5}ms, opacity 0.3s ease`,
             }} />
@@ -536,17 +582,17 @@ function App() {
           <div key={cat.id}
             style={{display:"flex", alignItems:"center", gap:6, cursor:"pointer", opacity: hovCat === null || hovCat === cat.id ? 1 : 0.3, transition:"opacity 0.2s"}}
             onMouseEnter={() => setHovCat(cat.id)} onMouseLeave={() => setHovCat(null)}>
-            <div style={{width:10, height:10, borderRadius:1.5, backgroundColor:cat.active, outline: cat.id==="unelec"?"1px solid rgba(255,255,255,0.1)":"none", flexShrink:0}} />
+            <div style={{width:10, height:10, borderRadius:1.5, backgroundColor:cat.active, outline: cat.id==="unelec"?"1px solid var(--dot-outline2)":"none", flexShrink:0}} />
             <div>
-              <span style={{fontFamily:FS, fontSize:11, color:"#b0a998"}}>{cat.label}</span>
-              <span style={{fontFamily:FM, fontSize:11, color:"#e8e4de", marginLeft:6}}>{fmtPct(catStats[cat.id])}</span>
+              <span style={{fontFamily:FS, fontSize:11, color:"var(--text2)"}}>{cat.label}</span>
+              <span style={{fontFamily:FM, fontSize:11, color:"var(--text)", marginLeft:6}}>{fmtPct(catStats[cat.id])}</span>
             </div>
           </div>
         ))}
       </div>
 
       {/* Detail */}
-      <p style={{fontFamily:FS, fontSize:11, textAlign:"center", color:"#666", marginBottom:20, lineHeight:1.4, padding:"0 20px"}}>
+      <p style={{fontFamily:FS, fontSize:11, textAlign:"center", color:"var(--text4)", marginBottom:20, lineHeight:1.4, padding:"0 20px"}}>
         {disco.detail}
       </p>
 
@@ -559,8 +605,8 @@ function App() {
           {label:"Penetration", value:fmtPct(penetration)},
         ].map(({label,value}) => (
           <div key={label} style={{textAlign:"center"}}>
-            <div style={{fontFamily:FM, fontSize:18, fontWeight:700, color:"#e8e4de"}}>{value}</div>
-            <div style={{fontFamily:FM, fontSize:9, color:"#666", textTransform:"uppercase", letterSpacing:1}}>{label}</div>
+            <div style={{fontFamily:FM, fontSize:18, fontWeight:700, color:"var(--text)"}}>{value}</div>
+            <div style={{fontFamily:FM, fontSize:9, color:"var(--text4)", textTransform:"uppercase", letterSpacing:1}}>{label}</div>
           </div>
         ))}
       </div>
@@ -569,7 +615,7 @@ function App() {
       <h2 style={{fontFamily:FS, fontSize:16, fontWeight:700, marginBottom:4, textAlign:"center"}}>
         Net-metering capacity by DISCO
       </h2>
-      <p style={{fontFamily:FM, fontSize:10, color:"#666", textAlign:"center", marginBottom:16}}>
+      <p style={{fontFamily:FM, fontSize:10, color:"var(--text4)", textAlign:"center", marginBottom:16}}>
         sanctioned rooftop capacity, MW
       </p>
       <div style={{maxWidth:600, margin:"0 auto 28px"}}>
@@ -582,13 +628,13 @@ function App() {
               style={{display:"flex", alignItems:"center", gap:8, marginBottom:4, cursor:"pointer", padding:"3px 0", opacity: isSel ? 1 : 0.6, transition:"opacity 0.2s"}}
               onMouseEnter={e => e.currentTarget.style.opacity = "1"}
               onMouseLeave={e => { if (!isSel) e.currentTarget.style.opacity = "0.6"; }}>
-              <div style={{width:82, fontFamily:FM, fontSize:10, color: isSel ? ACCENT_HI : "#8a857a", textAlign:"right", flexShrink:0}}>
+              <div style={{width:82, fontFamily:FM, fontSize:10, color: isSel ? ACCENT_HI : "var(--text3)", textAlign:"right", flexShrink:0}}>
                 {c.icon} {c.name}
               </div>
-              <div style={{flex:1, height:14, background:"#1a1a1a", borderRadius:2, overflow:"hidden"}}>
+              <div style={{flex:1, height:14, background:"var(--border)", borderRadius:2, overflow:"hidden"}}>
                 <div style={{height:"100%", width: (c.capacityMW/maxMW*100)+"%", backgroundColor: isSel ? ACCENT_HI : ACCENT, borderRadius:2, transition:"width 0.4s ease, background-color 0.3s"}} />
               </div>
-              <div style={{width:56, fontFamily:FM, fontSize:10, color: isSel ? "#e8e4de" : "#666", flexShrink:0, textAlign:"right"}}>
+              <div style={{width:56, fontFamily:FM, fontSize:10, color: isSel ? "var(--text)" : "var(--text4)", flexShrink:0, textAlign:"right"}}>
                 {fmtPower(c.capacityMW)}
               </div>
             </div>
@@ -600,7 +646,7 @@ function App() {
       <h2 style={{fontFamily:FS, fontSize:16, fontWeight:700, marginBottom:4, textAlign:"center"}}>
         Net-metering penetration by DISCO
       </h2>
-      <p style={{fontFamily:FM, fontSize:10, color:"#666", textAlign:"center", marginBottom:16}}>
+      <p style={{fontFamily:FM, fontSize:10, color:"var(--text4)", textAlign:"center", marginBottom:16}}>
         connections as % of the DISCO's consumers
       </p>
       <div style={{maxWidth:600, margin:"0 auto 28px"}}>
@@ -613,13 +659,13 @@ function App() {
               style={{display:"flex", alignItems:"center", gap:8, marginBottom:4, cursor:"pointer", padding:"3px 0", opacity: isSel ? 1 : 0.6, transition:"opacity 0.2s"}}
               onMouseEnter={e => e.currentTarget.style.opacity = "1"}
               onMouseLeave={e => { if (!isSel) e.currentTarget.style.opacity = "0.6"; }}>
-              <div style={{width:82, fontFamily:FM, fontSize:10, color: isSel ? ACCENT_HI : "#8a857a", textAlign:"right", flexShrink:0}}>
+              <div style={{width:82, fontFamily:FM, fontSize:10, color: isSel ? ACCENT_HI : "var(--text3)", textAlign:"right", flexShrink:0}}>
                 {c.icon} {c.name}
               </div>
-              <div style={{flex:1, height:14, background:"#1a1a1a", borderRadius:2, overflow:"hidden"}}>
+              <div style={{flex:1, height:14, background:"var(--border)", borderRadius:2, overflow:"hidden"}}>
                 <div style={{height:"100%", width: Math.min(100, c.pen/maxPen*100)+"%", backgroundColor: isSel ? ACCENT_HI : ACCENT, borderRadius:2, transition:"width 0.4s ease"}} />
               </div>
-              <div style={{width:56, fontFamily:FM, fontSize:10, color: isSel ? "#e8e4de" : "#666", flexShrink:0, textAlign:"right"}}>
+              <div style={{width:56, fontFamily:FM, fontSize:10, color: isSel ? "var(--text)" : "var(--text4)", flexShrink:0, textAlign:"right"}}>
                 {c.pen.toFixed(2)}%
               </div>
             </div>
@@ -628,49 +674,49 @@ function App() {
       </div>
 
       {/* THE POLICY SHIFT */}
-      <div style={{borderTop:`1px solid ${ACCENT}`, borderBottom:"1px solid #1a1a1a", paddingTop:22, paddingBottom:22, marginBottom:28}}>
+      <div style={{borderTop:`1px solid ${ACCENT}`, borderBottom:"1px solid var(--border)", paddingTop:22, paddingBottom:22, marginBottom:28}}>
         <h2 style={{fontFamily:FS, fontSize:18, fontWeight:700, marginBottom:4, textAlign:"center", color:ACCENT_HI}}>
           The Policy Shift — {POLICY.date}
         </h2>
-        <p style={{fontFamily:FS, fontSize:12, color:"#8a857a", textAlign:"center", lineHeight:1.5, marginBottom:18, maxWidth:520, marginLeft:"auto", marginRight:"auto"}}>
-          NEPRA's Prosumer Regulations 2026 replaced <strong style={{color:"#b0a998"}}>net metering</strong> with <strong style={{color:"#b0a998"}}>net billing</strong>, sharply changing rooftop-solar economics for new prosumers.
+        <p style={{fontFamily:FS, fontSize:12, color:"var(--text3)", textAlign:"center", lineHeight:1.5, marginBottom:18, maxWidth:520, marginLeft:"auto", marginRight:"auto"}}>
+          NEPRA's Prosumer Regulations 2026 replaced <strong style={{color:"var(--text2)"}}>net metering</strong> with <strong style={{color:"var(--text2)"}}>net billing</strong>, sharply changing rooftop-solar economics for new prosumers.
         </p>
 
         <div style={{maxWidth:560, margin:"0 auto 18px"}}>
           {/* header */}
-          <div style={{display:"flex", fontFamily:FM, fontSize:10, color:"#666", textTransform:"uppercase", letterSpacing:1, padding:"0 4px 8px", borderBottom:"1px solid #1a1a1a"}}>
+          <div style={{display:"flex", fontFamily:FM, fontSize:10, color:"var(--text4)", textTransform:"uppercase", letterSpacing:1, padding:"0 4px 8px", borderBottom:"1px solid var(--border)"}}>
             <div style={{flex:"0 0 36%"}}></div>
-            <div style={{flex:1, textAlign:"center", color:"#8a857a"}}>Before (net metering)</div>
+            <div style={{flex:1, textAlign:"center", color:"var(--text3)"}}>Before (net metering)</div>
             <div style={{flex:1, textAlign:"center", color:ACCENT}}>After (net billing)</div>
           </div>
           {POLICY.rows.map((r,i) => (
-            <div key={i} style={{display:"flex", alignItems:"center", padding:"10px 4px", borderBottom:"1px solid #141414"}}>
-              <div style={{flex:"0 0 36%", fontFamily:FS, fontSize:12, color:"#b0a998"}}>{r.label}</div>
-              <div style={{flex:1, textAlign:"center", fontFamily:FM, fontSize:12, color:"#8a857a"}}>{r.before}</div>
-              <div style={{flex:1, textAlign:"center", fontFamily:FM, fontSize:12, color:"#e8e4de", fontWeight:500}}>{r.after}</div>
+            <div key={i} style={{display:"flex", alignItems:"center", padding:"10px 4px", borderBottom:"1px solid var(--panel)"}}>
+              <div style={{flex:"0 0 36%", fontFamily:FS, fontSize:12, color:"var(--text2)"}}>{r.label}</div>
+              <div style={{flex:1, textAlign:"center", fontFamily:FM, fontSize:12, color:"var(--text3)"}}>{r.before}</div>
+              <div style={{flex:1, textAlign:"center", fontFamily:FM, fontSize:12, color:"var(--text)", fontWeight:500}}>{r.after}</div>
             </div>
           ))}
         </div>
 
-        <div style={{maxWidth:560, margin:"0 auto", background:"#141414", border:"1px solid #222", borderRadius:6, padding:"14px 16px"}}>
-          <p style={{fontFamily:FS, fontSize:12, color:"#b0a998", lineHeight:1.65}}>
+        <div style={{maxWidth:560, margin:"0 auto", background:"var(--panel)", border:"1px solid var(--border2)", borderRadius:6, padding:"14px 16px"}}>
+          <p style={{fontFamily:FS, fontSize:12, color:"var(--text2)", lineHeight:1.65}}>
             <strong style={{color:ACCENT_HI}}>What this means for new prosumers:</strong> the value of exporting surplus solar to the grid falls by more than half, so payback periods roughly double — from about 3–4 years to 6–8. The economics now favor sizing a system to your own daytime use (and adding batteries) rather than exporting heavily. Consumers who registered under net metering before the cutover are generally honored for the rest of their existing contracts.
           </p>
         </div>
       </div>
 
       {/* FAQ */}
-      <div style={{borderTop:"1px solid #1a1a1a", paddingTop:20, marginBottom:20}}>
+      <div style={{borderTop:"1px solid var(--border)", paddingTop:20, marginBottom:20}}>
         <h2 style={{fontFamily:FS, fontSize:16, fontWeight:700, marginBottom:12, textAlign:"center"}}>FAQ</h2>
         {FAQS.map((f,i) => (
-          <div key={i} style={{borderBottom:"1px solid #1a1a1a", padding:"10px 0"}}>
+          <div key={i} style={{borderBottom:"1px solid var(--border)", padding:"10px 0"}}>
             <button onClick={() => setFaqOpen(faqOpen === i ? null : i)}
-              style={{background:"none", border:"none", color:"#b0a998", cursor:"pointer", fontFamily:FS, fontSize:13, textAlign:"left", width:"100%", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+              style={{background:"none", border:"none", color:"var(--text2)", cursor:"pointer", fontFamily:FS, fontSize:13, textAlign:"left", width:"100%", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
               {f.q}
-              <span style={{fontFamily:FM, fontSize:14, color:"#666", marginLeft:8, flexShrink:0, transition:"transform 0.2s", transform: faqOpen===i?"rotate(45deg)":"rotate(0)"}}>+</span>
+              <span style={{fontFamily:FM, fontSize:14, color:"var(--text4)", marginLeft:8, flexShrink:0, transition:"transform 0.2s", transform: faqOpen===i?"rotate(45deg)":"rotate(0)"}}>+</span>
             </button>
             {faqOpen === i && (
-              <div style={{fontFamily:FS, fontSize:12, color:"#666", lineHeight:1.6, marginTop:8, padding:"0 4px", whiteSpace:"pre-line"}}>
+              <div style={{fontFamily:FS, fontSize:12, color:"var(--text4)", lineHeight:1.6, marginTop:8, padding:"0 4px", whiteSpace:"pre-line"}}>
                 {f.a}
               </div>
             )}
@@ -681,26 +727,26 @@ function App() {
       {/* Sources */}
       <div style={{marginBottom:24}}>
         <button onClick={() => setShowSrc(!showSrc)}
-          style={{fontFamily:FM, fontSize:11, color:"#666", background:"none", border:"1px solid #333", borderRadius:4, padding:"6px 14px", cursor:"pointer", display:"block", margin:"0 auto", transition:"all 0.2s"}}
-          onMouseEnter={e => { e.target.style.borderColor="#555"; e.target.style.color="#8a857a"; }}
-          onMouseLeave={e => { e.target.style.borderColor="#333"; e.target.style.color="#666"; }}>
+          style={{fontFamily:FM, fontSize:11, color:"var(--text4)", background:"none", border:"1px solid var(--border3)", borderRadius:4, padding:"6px 14px", cursor:"pointer", display:"block", margin:"0 auto", transition:"all 0.2s"}}
+          onMouseEnter={e => { e.target.style.borderColor="var(--border-hover)"; e.target.style.color="var(--text3)"; }}
+          onMouseLeave={e => { e.target.style.borderColor="var(--border3)"; e.target.style.color="var(--text4)"; }}>
           {showSrc ? "Hide" : "Show"} Sources ({SOURCES.length})
         </button>
         {showSrc && (
-          <ol style={{fontFamily:FM, fontSize:10, color:"#666", lineHeight:1.8, marginTop:12, paddingLeft:20}}>
+          <ol style={{fontFamily:FM, fontSize:10, color:"var(--text4)", lineHeight:1.8, marginTop:12, paddingLeft:20}}>
             {SOURCES.map((s,i) => <li key={i}><a href={s.u} target="_blank" rel="noopener">{s.n}</a></li>)}
           </ol>
         )}
       </div>
 
       {/* Footer */}
-      <div style={{borderTop:"1px solid #1a1a1a", paddingTop:16, textAlign:"center"}}>
-        <p style={{fontFamily:FM, fontSize:9, color:"#444", lineHeight:1.6, maxWidth:520, margin:"0 auto"}}>
+      <div style={{borderTop:"1px solid var(--border)", paddingTop:16, textAlign:"center"}}>
+        <p style={{fontFamily:FM, fontSize:9, color:"var(--text5)", lineHeight:1.6, maxWidth:520, margin:"0 auto"}}>
           National capacity, connection and growth figures are sourced from NEPRA and Renewables First.
           Per-DISCO connection counts and the household-level breakdown are modeled estimates derived from
           NEPRA capacity shares — see the FAQ. All figures are snapshots and the policy regime is still evolving.
         </p>
-        <p style={{fontFamily:FM, fontSize:10, color:"#8a857a", marginTop:12}}>
+        <p style={{fontFamily:FM, fontSize:10, color:"var(--text3)", marginTop:12}}>
           Built by WhatTheMahad · Last updated 18 June 2026 · <a href="https://github.com/WhatTheMahad/solaradoption" target="_blank" rel="noopener">Source on GitHub</a>
         </p>
       </div>
