@@ -4,16 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Solar Adoption in Pakistan — 2026</title>
-<meta name="description" content="Tracking Pakistan's rooftop solar net-metering boom by DISCO — and the Feb 2026 shift from net metering to net billing. Built on NEPRA data.">
+<meta name="google-site-verification" content="uHt8D8TIFQozYm7871JLIjLUKTMmEG_i7PpBl98x6mU" />
+<meta name="description" content="How fast is rooftop solar growing in Pakistan? Net-metering adoption by DISCO (LESCO, K-Electric, IESCO and more) — ~6.1 GW across ~283,000 connections — and what the Feb 2026 net-metering to net-billing shift means for prosumers. Built on NEPRA data.">
+<meta name="keywords" content="Pakistan solar, net metering Pakistan, net billing, NEPRA, rooftop solar, DISCO net metering, LESCO solar, K-Electric net metering, Prosumer Regulations 2026, solar payback Pakistan, distributed solar">
+<meta name="author" content="WhatTheMahad">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta name="theme-color" content="#0d0d0d">
+<!-- SITE_URL: https://solaradoption.vercel.app -->
+<link rel="canonical" href="https://solaradoption.vercel.app/">
 <!-- Open Graph / Twitter -->
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="Solar Adoption in Pakistan">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://solaradoption.vercel.app/">
 <meta property="og:title" content="Solar Adoption in Pakistan — 2026">
 <meta property="og:description" content="Pakistan's rooftop solar net-metering boom by DISCO, and what the Feb 2026 net-billing shift means for prosumers.">
-<meta property="og:image" content="/og.png">
+<meta property="og:image" content="https://solaradoption.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Solar Adoption in Pakistan — 2026">
 <meta name="twitter:description" content="Pakistan's rooftop solar net-metering boom by DISCO, and what the Feb 2026 net-billing shift means for prosumers.">
-<meta name="twitter:image" content="/og.png">
+<meta name="twitter:image" content="https://solaradoption.vercel.app/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -31,9 +43,115 @@ a:hover{text-decoration:underline}
 ::selection{background:#f5a524;color:#0d0d0d}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 </style>
+<!-- Structured data: read by search engines and AI crawlers without executing JS -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Solar Adoption in Pakistan",
+  "alternateName": "solaradoption",
+  "url": "https://solaradoption.vercel.app/",
+  "description": "Interactive visualization of Pakistan's rooftop solar net-metering adoption by DISCO, framed around the February 2026 shift from net metering to net billing.",
+  "inLanguage": "en",
+  "author": { "@type": "Person", "name": "WhatTheMahad" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  "name": "Solar Adoption in Pakistan — rooftop net-metering by DISCO",
+  "description": "Net-metering adoption across Pakistan's electricity distribution companies (DISCOs) and K-Electric: connections, sanctioned capacity (MW), share of national capacity, and penetration. National total approximately 6.1 GW across roughly 283,000 active connections (mid-2025). Includes the February 2026 NEPRA Prosumer Regulations shift from net metering to net billing.",
+  "url": "https://solaradoption.vercel.app/",
+  "inLanguage": "en",
+  "keywords": ["Pakistan solar", "net metering", "net billing", "NEPRA", "rooftop solar", "DISCO", "LESCO", "K-Electric", "Prosumer Regulations 2026", "distributed solar"],
+  "spatialCoverage": { "@type": "Place", "name": "Pakistan" },
+  "temporalCoverage": "2023/2026",
+  "dateModified": "2026-06-19",
+  "license": "https://opensource.org/licenses/MIT",
+  "creator": { "@type": "Person", "name": "WhatTheWhatTheMahad" },
+  "variableMeasured": ["net-metering connections", "net-metering capacity (MW)", "share of national net-metering capacity", "net-metering penetration"],
+  "isBasedOn": [
+    "https://www.nepra.org.pk/publications/State%20of%20Industry%20Reports/State%20of%20Industry%20Report%202024.pdf",
+    "https://uploads.renewablesfirst.org/Pakistan_Electricity_Review_2025_89f0b613d6.pdf",
+    "https://www.pv-magazine.com/2025/08/06/pakistan-adds-1-2-gw-of-net-metering-capacity-in-h1/"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Where does this data come from?", "acceptedAnswer": { "@type": "Answer", "text": "The backbone is NEPRA's State of the Industry Report and NEPRA's net-metering statistics. National totals and growth are cross-checked against Renewables First's PECI solar tracker and Pakistan Electricity Review 2025, pv-magazine reporting, and Ember. Cumulative net-metered capacity reached about 6.1 GW by June 2025 (up from 4.9 GW at end-2024) across roughly 283,000 active connections; solar panel imports were about 17 GW in 2024. Per-DISCO capacity shares (LESCO ~21%, IESCO and K-Electric ~15% each, MEPCO ~13%, FESCO ~11%, GEPCO ~10%) come from NEPRA via Renewables First." } },
+    { "@type": "Question", "name": "How accurate are the per-DISCO numbers?", "acceptedAnswer": { "@type": "Answer", "text": "National totals and the capacity share of the largest DISCOs are well-sourced from NEPRA and Renewables First. The exact net-metering connection count per DISCO and the household-level breakdown (net-metered vs off-grid vs grid-only vs unelectrified) are modeled estimates, derived from each DISCO's NEPRA capacity share scaled to the ~283,000 national total and anchored on LESCO's ~91,500 connections. These modeled figures are directional, not exact, and should be replaced with the line-item table from the latest NEPRA State of the Industry Report." } },
+    { "@type": "Question", "name": "What changed in February 2026?", "acceptedAnswer": { "@type": "Answer", "text": "NEPRA's Prosumer Regulations 2026 replaced net metering with net billing for new rooftop-solar consumers. Under net metering, exported units were netted against imports at roughly the full retail tariff (Rs 22-27 per kWh). Under net billing, imports and exports are priced separately and exported solar is bought back at about Rs 11 per kWh. Contracts shortened from 7 to 5 years and typical payback periods roughly doubled, from 3-4 years to 6-8 years. Existing net-metering consumers are generally honored for the remainder of their contracts." } },
+    { "@type": "Question", "name": "Net metering vs net billing — what's the difference?", "acceptedAnswer": { "@type": "Answer", "text": "Net metering is a unit-for-unit swap: power you export cancels power you import, valued near the retail rate. Net billing splits the two flows — you pay full retail for electricity you draw, while solar you export is bought back at a separate, lower regulator-set rate. Under net billing the economics favor sizing a system to your own daytime use, and adding batteries, rather than exporting heavily." } },
+    { "@type": "Question", "name": "What is not captured in this data?", "acceptedAnswer": { "@type": "Answer", "text": "Off-grid solar used by an estimated 2.6 million rural households never touches a DISCO meter and is shown only as a survey-based estimate. Informal or unregistered rooftop systems, solar-only homes that disconnected from the grid, and captive industrial self-generation are also outside the net-metering registry. This page tracks grid-connected net-metering plus a best-estimate off-grid layer." } },
+    { "@type": "Question", "name": "Why is K-Electric tracked separately from the DISCOs?", "acceptedAnswer": { "@type": "Answer", "text": "K-Electric is Pakistan's only vertically-integrated private utility, serving Karachi, and runs its own net-metering pipeline. The ten DISCOs (LESCO, IESCO, MEPCO, GEPCO, FESCO, PESCO, HESCO, SEPCO, QESCO, TESCO) are former WAPDA distribution companies under the Power Division, so K-Electric is listed separately rather than folded into DISCO totals." } },
+    { "@type": "Question", "name": "Why is solar adoption uneven across DISCOs?", "acceptedAnswer": { "@type": "Answer", "text": "High-tariff urban zones (Lahore, Islamabad, Karachi) reach payback fastest, so net-metering clusters there. Rooftop solar needs upfront capital, which favors wealthier urban consumers. Where the grid is weak or absent (KP, Balochistan, tribal districts) households go off-grid or stay unelectrified instead. Industrial divisions add large commercial systems while agricultural ones lean toward solar tube-wells." } },
+    { "@type": "Question", "name": "How often does this update?", "acceptedAnswer": { "@type": "Answer", "text": "Roughly annually, tracking NEPRA's State of the Industry Report each fiscal year, with ad-hoc refreshes when major figures or the policy regime change. Solar in Pakistan is moving fast and the policy story is unsettled, so every number is a date-stamped snapshot." } }
+  ]
+}
+</script>
 </head>
 <body>
-<div id="root"></div>
+<div id="root">
+  <!-- Static fallback: real content for crawlers and AI bots that don't execute JavaScript.
+       The React app replaces this content once it mounts. -->
+  <article style="max-width:760px;margin:0 auto;font-family:'DM Sans',sans-serif;line-height:1.6">
+    <h1>Solar Adoption in Pakistan — 2026</h1>
+    <p>Tracking Pakistan's rooftop solar net-metering boom by DISCO, and the February 2026 shift from net metering to net billing. As of mid-2025, Pakistan had roughly <strong>283,000 active net-metering connections</strong> totaling about <strong>6.1 GW</strong> of installed rooftop capacity — up from 4.9 GW at end-2024 — yet still under 3% of national grid supply. Pakistan imported about 17 GW of solar panels in 2024.</p>
+
+    <h2>Net-metering adoption by DISCO</h2>
+    <table border="1" cellpadding="4">
+      <thead><tr><th>Utility</th><th>Region</th><th>NM connections (est.)</th><th>NM capacity</th><th>Share of national</th></tr></thead>
+      <tbody>
+        <tr><td>LESCO</td><td>Punjab — Lahore</td><td>~91,500</td><td>~1,300 MW</td><td>21%</td></tr>
+        <tr><td>IESCO</td><td>Islamabad / Rawalpindi</td><td>~36,500</td><td>~915 MW</td><td>15%</td></tr>
+        <tr><td>K-Electric</td><td>Karachi (private utility)</td><td>~36,500</td><td>~915 MW</td><td>15%</td></tr>
+        <tr><td>MEPCO</td><td>South Punjab — Multan</td><td>~31,500</td><td>~790 MW</td><td>13%</td></tr>
+        <tr><td>FESCO</td><td>Faisalabad</td><td>~26,500</td><td>~670 MW</td><td>11%</td></tr>
+        <tr><td>GEPCO</td><td>Gujranwala</td><td>~24,000</td><td>~610 MW</td><td>10%</td></tr>
+        <tr><td>PESCO</td><td>Khyber Pakhtunkhwa</td><td>~12,000</td><td>~305 MW</td><td>5%</td></tr>
+        <tr><td>HESCO</td><td>Sindh — Hyderabad</td><td>~9,700</td><td>~245 MW</td><td>4%</td></tr>
+        <tr><td>QESCO</td><td>Balochistan</td><td>~7,300</td><td>~183 MW</td><td>3%</td></tr>
+        <tr><td>SEPCO</td><td>Sindh — Sukkur</td><td>~4,900</td><td>~122 MW</td><td>2%</td></tr>
+        <tr><td>TESCO</td><td>Tribal districts</td><td>~2,400</td><td>~61 MW</td><td>1%</td></tr>
+      </tbody>
+    </table>
+    <p>Per-DISCO connection counts are modeled estimates derived from NEPRA capacity shares; national totals and major-DISCO capacity shares are sourced from NEPRA and Renewables First.</p>
+
+    <h2>The February 2026 policy shift: net metering → net billing</h2>
+    <p>NEPRA's Prosumer Regulations 2026 replaced net metering with net billing for new rooftop-solar consumers:</p>
+    <ul>
+      <li><strong>Export buyback:</strong> Rs 22–27/kWh → ~Rs 11/kWh</li>
+      <li><strong>Billing basis:</strong> unit-for-unit offset → imports and exports priced separately</li>
+      <li><strong>Contract length:</strong> 7 years → 5 years</li>
+      <li><strong>Typical payback:</strong> 3–4 years → 6–8 years</li>
+    </ul>
+    <p>Existing net-metering consumers are generally honored for the remainder of their contracts.</p>
+
+    <h2>FAQ</h2>
+    <h3>Where does this data come from?</h3>
+    <p>The backbone is NEPRA's State of the Industry Report and net-metering statistics, cross-checked against Renewables First (PECI tracker, Pakistan Electricity Review 2025), pv-magazine, and Ember.</p>
+    <h3>What changed in February 2026?</h3>
+    <p>NEPRA's Prosumer Regulations 2026 replaced net metering with net billing: exported solar is now bought back at about Rs 11/kWh instead of the retail tariff, contracts shortened from 7 to 5 years, and payback periods roughly doubled to 6–8 years.</p>
+    <h3>What is net metering vs net billing?</h3>
+    <p>Net metering is a unit-for-unit swap valued near the retail rate. Net billing prices imports and exports separately, buying back exports at a lower regulator-set rate.</p>
+    <h3>Why is K-Electric separate from the DISCOs?</h3>
+    <p>K-Electric is Pakistan's only private vertically-integrated utility (Karachi) and runs its own net-metering pipeline, distinct from the ten WAPDA-descended DISCOs.</p>
+
+    <h2>Sources</h2>
+    <ul>
+      <li>NEPRA — State of the Industry Report (annual)</li>
+      <li>NEPRA — Prosumer Regulations 2026</li>
+      <li><a href="https://uploads.renewablesfirst.org/Pakistan_Electricity_Review_2025_89f0b613d6.pdf">Renewables First — Pakistan Electricity Review 2025</a></li>
+      <li><a href="https://www.pv-magazine.com/2025/08/06/pakistan-adds-1-2-gw-of-net-metering-capacity-in-h1/">pv-magazine — Pakistan adds 1.2 GW net-metering in H1 2025</a></li>
+    </ul>
+    <p>Built by WhatTheMahad · Last updated 19 June 2026.</p>
+  </article>
+</div>
 <script type="text/babel">
 const {useState, useMemo, useEffect, useRef, useCallback} = React;
 
@@ -583,7 +701,7 @@ function App() {
           NEPRA capacity shares — see the FAQ. All figures are snapshots and the policy regime is still evolving.
         </p>
         <p style={{fontFamily:FM, fontSize:10, color:"#8a857a", marginTop:12}}>
-          Built by WhatTheMahad · Last updated 18 June 2026 · <a href="https://github.com/mahad/solaradoption" target="_blank" rel="noopener">Source on GitHub</a>
+          Built by WhatTheMahad · Last updated 18 June 2026 · <a href="https://github.com/WhatTheMahad/solaradoption" target="_blank" rel="noopener">Source on GitHub</a>
         </p>
       </div>
     </div>
