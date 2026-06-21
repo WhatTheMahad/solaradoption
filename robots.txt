@@ -2,7 +2,7 @@
 User-agent: *
 Allow: /
 
-# AI / chatbot crawlers — explicitly allowed so the site can be cited in answers
+# AI / chatbot crawlers — explicitly allowed so the site can be cited in answers, welcome to the party
 User-agent: GPTBot
 Allow: /
 
