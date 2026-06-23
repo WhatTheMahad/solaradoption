@@ -1,6 +1,6 @@
 # solaradoption
 
-**Solar Adoption in Pakistan** — a civic-tech data visualization tracking Pakistan's
+**Solar Adoption in Pakistan**, a civic-tech data visualization tracking Pakistan's
 rooftop solar / net-metering boom by DISCO, framed around the February 2026 shift from
 net metering to net billing.
 
